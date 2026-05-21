@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %} Connexion | EduLearn {% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center py-5" style="min-height: calc(100vh - 76px); background-color: #f8f9fa;">
+    <div class="container d-flex flex-column align-items-center mt-4">
+
+        <div class="bg-primary text-white d-flex justify-content-center align-items-center shadow-sm mb-4"
+            style="width: 64px; height: 64px; border-radius: 16px;">
+            <i class='bx bx-education fs-1'></i>
+        </div>
+
+        <h2 class="fw-bold mb-2 text-dark">Connexion à EduLearn</h2>
+        <p class="text-secondary mb-4 pb-2 fs-5">Continuez votre apprentissage</p>
+
+        <div class="card border border-light-subtle shadow-sm p-4 w-100" style="max-width: 480px; border-radius: 16px;">
+            {% if messages %}
+                <div class="mb-3">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+            <form action="" method="POST" class="p-2">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="username" class="form-label text-secondary small fw-semibold mb-2">Nom d'utilisateur <span class="text-danger">*</span></label>
+                    <input type="text" id="username" name="username" class="form-control border-0 py-3 px-3 shadow-none"
+                        placeholder="votre nom d'utilisateur" style="background-color: #f3f4f6; border-radius: 8px;" required>
+                </div>
+
+                <div class="mb-4 pb-1">
+                    <label for="password" class="form-label text-secondary small fw-semibold mb-2">Mot de passe <span class="text-danger">*</span></label>
+                    <div class="input-group" style="background-color: #f3f4f6; border-radius: 8px;">
+                        <input type="password" id="password" name="password"
+                            class="form-control bg-transparent border-0 py-3 px-3 shadow-none" placeholder="••••••••"
+                            style="border-radius: 8px 0 0 8px;" required>
+                        <button class="btn border-0 text-secondary pe-3" type="button" id="togglePassword">
+                            <i class='bx bx-eye'></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-3 mb-4 fs-6 shadow-sm"
+                    style="border-radius: 8px;">
+                    Se connecter
+                </button>
+
+                <div class="text-center">
+                    <span class="text-secondary">Pas encore de compte ?</span>
+                    <a href="/register" class="text-primary text-decoration-none fw-semibold">S'inscrire</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Focus styles for custom input fields */
+    .form-control[style*="background-color: #f3f4f6"]:focus,
+    .input-group:focus-within {
+        background-color: #fff !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+    }
+
+    .input-group:focus-within input {
+        background-color: #fff !important;
+    }
+</style>
+
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const passwordInput = document.getElementById('password');
+        const icon = this.querySelector('i');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.className = "bx bx-eye-slash"
+        } else {
+            passwordInput.type = 'password';
+            icon.className = "bx bx-eye"
+        }
+    });
+</script>
+{% endblock %}

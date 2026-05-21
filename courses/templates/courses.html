@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %} Catalogue des Cours {% endblock %}
+
+{% block content %}
+<style>
+    .course-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .course-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.15)!important;
+    }
+</style>
+
+<div class="bg-primary bg-opacity-10 py-5 mb-5 border-bottom">
+    <div class="container text-center py-4">
+        <h1 class="fw-bold text-dark mb-3 display-5">Catalogue des cours</h1>
+        <p class="text-secondary lead mx-auto" style="max-width: 600px;">
+            Découvrez notre sélection de cours pour développer vos compétences en programmation et ingénierie logicielle.
+        </p>
+    </div>
+</div>
+
+<div class="container pb-5 mb-5">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for course in courses %}
+        <div class="col">
+            <div class="card course-card h-100 border-0 shadow-sm rounded-4 overflow-hidden">                <div class="position-relative" style="height: 200px; background-color: #f8f9fa;">
+                    {% if course.cover_image %}
+                    <img src="{{ course.cover_image.url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ course.name }}">
+                    {% else %}
+                    <div class="w-100 h-100 d-flex justify-content-center align-items-center bg-primary bg-opacity-10 text-primary">
+                        <i class='bx bx-book-open' style="font-size: 4rem; opacity: 0.5;"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title fw-bold text-dark mb-0">{{ course.name }}</h5>
+                        <span class="badge rounded-pill" style="background-color: {{ course.categorie.color }}">{{ course.categorie.name }}</span>
+                    </div>
+                    <p class="card-text text-secondary mb-4 flex-grow-1" style="font-size: 0.95rem; line-height: 1.6;">
+                        {{ course.description|truncatechars:120 }}
+                    </p>
+                    
+                    <div class="d-flex align-items-center justify-content-between mt-auto pt-3 border-top">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                {% if course.teacher.first_name %}
+                                    {{ course.teacher.first_name|make_list|first|upper }}{% if course.teacher.last_name %}{{ course.teacher.last_name|make_list|first|upper }}{% endif %}
+                                {% else %}
+                                    {{ course.teacher.username|make_list|first|upper }}
+                                {% endif %}
+                            </div>
+                            <span class="text-dark fw-medium" style="font-size: 0.9rem;">
+                                <a href="/profile/{{ course.teacher.username }}/">
+                                {% if course.teacher.first_name and course.teacher.last_name %}
+                                    {{ course.teacher.first_name }} {{ course.teacher.last_name }}
+                                {% elif course.teacher.first_name %}
+                                    {{ course.teacher.first_name }}
+                                {% else %}
+                                    {{ course.teacher.username }}
+                                {% endif %}
+                                </a>
+                            </span>
+                        </div>
+                        <a href="{% url 'coursedetail' course.name %}" class="btn btn-sm btn-primary px-3 rounded-pill fw-medium">Consulter</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 py-5 text-center w-100">
+            <div class="p-5 bg-light rounded-4">
+                <i class='bx bx-search-alt fs-1 text-secondary mb-3'></i>
+                <h4 class="fw-bold text-dark">Aucun cours disponible</h4>
+                <p class="text-secondary mb-0">Revenez plus tard pour découvrir de nouveaux contenus.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %} Gérer {{ course.name }} {% endblock %}
+
+{% block content %}
+<div class="bg-light py-4 border-bottom">
+    <div class="container d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                <i class='bx bx-arrow-out-left-square-half'></i>
+            </a>
+            <h4 class="mb-0 fw-bold">{{ course.name }}</h4>
+        </div>
+        <span class="badge" style="background-color: {{ course.categorie.color }}">{{ course.categorie.name }}</span>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">Aperçu</h5>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                            <i class='bx bx-group fs-4'></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ course.students.count }}</h6>
+                            <span class="text-secondary small">Étudiants inscrits</span>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                            <i class='bx bx-edit fs-4'></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">{% if quiz %}1{% else %}0{% endif %}</h6>
+                            <span class="text-secondary small">Quiz disponible</span>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4" style="opacity: 0.15;">
+                    <a href="{% url 'edit_course' course.name %}" class="btn btn-outline-primary w-100 py-2 rounded-pill fw-bold">
+                        <i class='bx bx-edit-alt me-1'></i> Modifier le cours
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h5 class="fw-bold mb-0">Évaluation (Quiz)</h5>
+                    </div>
+
+                    {% if quiz %}
+                        <div class="alert alert-success rounded-4 d-flex align-items-center mb-0 border-0 shadow-sm">
+                            <i class='bx bxs-check-circle fs-1 me-3 text-success'></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ quiz.name }}</h6>
+                                <p class="mb-0 small text-success">{{ quiz.question_set.count }} questions • {{ quiz.time_limit_minutes }} min • {{ quiz.max_attempts }} tentatives max</p>
+                            </div>
+                            <div class="ms-auto">
+                                <a href="{% url 'edit_quiz' course.name %}" class="btn btn-light btn-sm fw-bold">Modifier</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 bg-light rounded-4 border border-dashed">
+                            <i class='bx bx-task text-muted mb-3' style="font-size: 4rem;"></i>
+                            <h5 class="fw-bold text-dark">Aucun quiz pour l'instant</h5>
+                            <p class="text-secondary mb-4">Créez un quiz interactif pour évaluer les étudiants à la fin de ce cours.</p>
+                            <a href="{% url 'create_quiz' course.name %}" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm">
+                                <i class='bx bx-plus-circle me-1'></i> Créer le Quiz
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

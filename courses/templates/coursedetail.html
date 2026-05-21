@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %} {{course.name}} {% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-4">
+    <div class="row g-5">
+        <div class="col-lg-8">
+            <h1 class="fw-bold text-dark mb-3">{{ course.name }}</h1>
+            <h5><span class="badge mb-4" style="background-color: {{ course.categorie.color }}">{{ course.categorie.name}}</span></h3>
+                <div class="d-flex align-items-center gap-3 mb-4 text-secondary">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class='bx bx-user-circle fs-5'></i>
+                        <span class="fw-medium me-4">
+                            <a href="/profile/{{ course.teacher.username }}/">
+                            {% if course.teacher.first_name and course.teacher.last_name %}
+                            {{ course.teacher.first_name }} {{ course.teacher.last_name }}
+                            {% elif course.teacher.first_name %}
+                            {{ course.teacher.first_name }}
+                            {% else %}
+                            {{ course.teacher.username }}
+                            {% endif %}
+                            </a>
+                        </span>
+                        <i class="bx bx-user fs-5"></i>
+                        <span class="fw-medium">{{ course.students.count }} étudiants inscrits</span>
+                    </div>
+                </div>
+
+                <div class="rounded-4 overflow-hidden mb-5 bg-light d-flex align-items-center justify-content-center shadow-sm"
+                    style="height: 400px;">
+                    {% if course.cover_image %}
+                    <img src="{{ course.cover_image.url }}" class="w-100 h-100" style="object-fit: cover;"
+                        alt="{{ course.name }}">
+                    {% else %}
+                    <i class='bx bx-book-open text-primary' style="font-size: 8rem; opacity: 0.2;"></i>
+                    {% endif %}
+                </div>
+
+                <h4 class="fw-bold mb-3">À propos de ce cours</h4>
+                <p class="text-secondary" style="line-height: 1.8; font-size: 1.05rem;">
+                    {{ course.description|linebreaks }}
+                </p>
+
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4" style="top: 100px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">Prêt à commencer ?</h5>
+
+                    <p class="text-secondary mb-4 small">
+                        Rejoignez ce cours pour accéder au contenu complet, aux quiz et obtenir votre certificat de
+                        réussite.
+                    </p>
+
+                    {% if user.is_authenticated %}
+                        {% if user in course.students.all %}
+                            <a href="{% url 'learn' course.name %}" class="btn btn-success w-100 py-3 rounded-3 fw-bold mb-3">
+                                Continuer le cours <i class='bx bx-right-arrow-alt'></i>
+                            </a>
+                        {% else %}
+                            <form method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold mb-3">
+                                    S'inscrire au cours
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                    <p>Vous devez être connecté pour vous inscrire au cours</p>
+                    <a href="{% url 'login' %}" class="btn btn-primary w-100 py-3 rounded-3 fw-bold mb-3">Se
+                        connecter</a>
+                    {% endif %}
+
+
+
+                    <hr class="my-4 text-secondary opacity-25">
+
+                    <ul class="list-unstyled mb-0 small text-secondary">
+                        <li class="d-flex align-items-center gap-2 mb-2">
+                            <i class='bx bx-check text-primary fs-5'></i> Accès illimité
+                        </li>
+                        <li class="d-flex align-items-center gap-2 mb-2">
+                            <i class='bx bx-check text-primary fs-5'></i> Apprentissage adaptatif
+                        </li>
+                        <li class="d-flex align-items-center gap-2">
+                            <i class='bx bx-check text-primary fs-5'></i> Évaluations interactives
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

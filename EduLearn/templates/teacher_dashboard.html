@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %} Espace Professeur {% endblock %}
+
+{% block content %}
+<div class="bg-light py-5 border-bottom">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h2 class="fw-bold text-dark mb-2">Espace Professeur</h2>
+                <p class="text-secondary mb-0">Gérez vos cours, vos quiz et suivez vos étudiants.</p>
+            </div>
+            <div class="col-md-6 text-md-end mt-4 mt-md-0">
+                <a href="{% url 'create_course' %}" class="btn btn-primary px-4 py-3 rounded-pill fw-bold shadow-sm">
+                    <i class='bx bx-plus-circle me-2'></i> Créer un nouveau cours
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <h4 class="fw-bold mb-4">Mes Cours</h4>
+    
+    {% if courses %}
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative transition-hover">
+                <div style="height: 180px; background-color: #f8f9fa; overflow: hidden;" class="position-relative">
+                    {% if course.cover_image %}
+                    <img src="{{ course.cover_image.url }}" alt="{{ course.name }}" class="w-100 h-100 object-fit-cover">
+                    {% else %}
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                        <i class='bx bx-book-open text-muted' style="font-size: 4rem;"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <span class="badge position-absolute top-0 end-0 m-3 shadow-sm" style="background-color: {{ course.categorie.color }};">
+                        {{ course.categorie.name }}
+                    </span>
+                </div>
+
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-2 text-dark">{{ course.name }}</h5>
+                    <p class="text-secondary small mb-4" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ course.description }}
+                    </p>
+                    
+                    <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+                        <div class="d-flex align-items-center text-muted small">
+                            <i class='bx bx-group me-1 fs-5'></i>
+                            <span class="fw-medium">{{ course.students.count }} étudiants</span>
+                        </div>
+                        <div class="d-flex align-items-center text-muted small">
+                            <i class='bx bx-list-check me-1 fs-5'></i>
+                            <span class="fw-medium">{{ course.quiz_set.count }} quiz</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white border-0 p-4 pt-0">
+                    <a href="{% url 'manage_course' course.name %}" class="btn btn-light w-100 rounded-pill fw-medium text-primary border">
+                        Gérer ce cours <i class='bx bx-right-arrow-alt ms-1'></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm border border-light">
+        <div class="mb-4">
+            <i class='bx bx-book-add text-muted' style="font-size: 5rem; opacity: 0.5;"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">Vous n'avez pas encore de cours</h4>
+        <p class="text-secondary mb-4">Commencez par créer votre premier cours pour accueillir vos étudiants.</p>
+        <a href="{% url 'create_course' %}" class="btn btn-primary px-4 py-3 rounded-pill fw-bold shadow-sm">
+            Créer mon premier cours
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .transition-hover {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.1) !important;
+    }
+    .object-fit-cover {
+        object-fit: cover;
+    }
+</style>
+{% endblock %}

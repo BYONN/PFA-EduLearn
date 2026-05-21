@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %} Résultats - {{ quiz.name }} {% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-body p-5">
+                    {% if attempt.cheat_alert %}
+                    <div class="mb-4">
+                        <i class='bx bxs-x-circle text-danger' style="font-size: 6rem;"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-3">Triche détectée</h2>
+                    <p class="text-secondary mb-4">Vous avez changé d'onglet plusieurs fois, ceci est considéré comme
+                        une tentative de triche.</p>
+                    {% elif attempt.score >= 50 %}
+                    <div class="mb-4">
+                        <i class='bx bxs-check-circle text-success' style="font-size: 6rem;"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-3">Félicitations !</h2>
+                    <p class="text-secondary mb-4">Vous avez réussi ce quiz avec brio.</p>
+                    {% else %}
+                    <div class="mb-4">
+                        <i class='bx bxs-x-circle text-danger' style="font-size: 6rem;"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-3">Dommage...</h2>
+                    <p class="text-secondary mb-4">Vous n'avez pas atteint la moyenne. Ne vous découragez pas, révisez
+                        le cours et réessayez !</p>
+                    {% endif %}
+
+                    {% if not attempt.cheat_alert %}
+                    <div class="d-inline-flex justify-content-center align-items-center rounded-circle border border-4 {% if attempt.score >= 50 %}border-success text-success{% else %}border-danger text-danger{% endif %}"
+                        style="width: 150px; height: 150px;">
+                        <h1 class="display-4 fw-bold mb-0">{{ attempt.score }}%</h1>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'coursedetail' course.name %}"
+                    class="btn btn-outline-secondary px-5 py-3 rounded-pill fw-bold">
+                    <i class='bx bx-left-arrow-alt me-1'></i> Retour au cours
+                </a>
+                {% if not attempt.cheat_alert %}
+                <a href="{% url 'profile' %}" class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-sm">
+                    Voir mes statistiques <i class='bx bx-bar-chart-alt-2 ms-1'></i>
+                </a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% if attempt.score >= 50 and not attempt.cheat_alert %}
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var duration = 3 * 1000;
+        var animationEnd = Date.now() + duration;
+        var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        var interval = setInterval(function () {
+            var timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            var particleCount = 50 * (timeLeft / duration);
+            confetti(Object.assign({}, defaults, {
+                particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+            }));
+            confetti(Object.assign({}, defaults, {
+                particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+            }));
+        }, 250);
+    });
+</script>
+{% endif %}
+
+{% if new_badges %}
+<div class="modal fade" id="badgeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-5 pb-5 text-center">
+                <div class="mb-4 display-1">🎉</div>
+                <h3 class="fw-bold text-dark mb-2">Badge Débloqué !</h3>
+                <p class="text-secondary mb-4">Félicitations, vous avez accompli un exploit !</p>
+                
+                <div class="d-flex flex-column gap-3 mb-4">
+                    {% for badge_name in new_badges %}
+                    <div class="p-3 bg-light border rounded-3 d-flex align-items-center gap-3 text-start">
+                        <div class="fs-1">
+                            {% if badge_name == "Première Victoire" %}🥇
+                            {% elif badge_name == "Parfait" %}✨
+                            {% else %}🎖️{% endif %}
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">{{ badge_name }}</h6>
+                            <small class="text-muted">
+                                {% if badge_name == "Première Victoire" %}Réussir un quiz pour la première fois.
+                                {% elif badge_name == "Parfait" %}Obtenir 100% à un quiz.
+                                {% else %}Exploit accompli sur EduLearn !{% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="button" class="btn btn-primary px-5 py-3 rounded-pill fw-bold w-100 shadow-sm" data-bs-dismiss="modal">
+                    Génial !
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var myModal = new bootstrap.Modal(document.getElementById('badgeModal'));
+        myModal.show();
+    });
+</script>
+{% endif %}
+{% endblock %}

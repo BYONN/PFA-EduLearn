@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    /* Hero Section Deep Blue */
+    .hero-bg {
+        background-color: #1a4cd2;
+    }
+    .text-warning-custom {
+        color: #ffc107 !important;
+    }
+    .btn-warning-custom {
+        background-color: #ffc107;
+        color: #000;
+        font-weight: 700;
+        border: none;
+    }
+    .btn-warning-custom:hover {
+        background-color: #e0a800;
+    }
+    .feature-card {
+        border: none;
+        border-radius: 16px;
+        transition: transform 0.2s;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 24px;
+        margin-bottom: 1rem;
+    }
+    .course-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    .course-card img {
+        height: 200px;
+        object-fit: cover;
+    }
+    .leaderboard-bg {
+        background-color: #f4f7fe;
+    }
+    .cta-bg {
+        background-color: #112349;
+    }
+</style>
+
+<section class="hero-bg text-white py-5">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="d-inline-flex align-items-center border border-warning rounded-pill px-3 py-1 mb-4" style="background-color: rgba(255, 193, 7, 0.1);">
+                    <i class='bx bxs-star text-warning me-2'></i>
+                    <span class="text-warning-custom fw-semibold small">Plateforme Mini-MOOC Adaptative</span>
+                </div>
+                
+                <h1 class="display-3 fw-bold mb-4">
+                    Apprenez. <span class="text-warning-custom">Testez.</span><br>
+                    Progressez.
+                </h1>
+                
+                <p class="lead mb-5" style="max-width: 600px; opacity: 0.9;">
+                    Plateforme adaptative qui évalue vos compétences grâce à l'algorithme ELO. 
+                    Gagnez des badges, grimpez dans le classement et maîtrisez les technologies clés de l'ingénierie.
+                </p>
+                
+                <div class="d-flex flex-wrap gap-3 mb-5">
+                    {% if not user.is_authenticated %}
+                        <a href="/register" class="btn btn-warning-custom rounded-pill px-4 py-3 d-flex align-items-center gap-2">
+                            Commencer gratuitement <i class='bx bx-chevron-right fs-5'></i>
+                        </a>
+                    {% endif %}
+                    <a href="/courses/" class="btn btn-outline-light rounded-pill px-4 py-3 fw-semibold">
+                        Voir les cours
+                    </a>
+                </div>
+
+                <div class="d-flex gap-5 mt-4">
+                    <div>
+                        <h3 class="fw-bold mb-0 text-warning-custom">5+</h3>
+                        <span class="small" style="opacity: 0.8;">Modules</span>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0 text-warning-custom">200+</h3>
+                        <span class="small" style="opacity: 0.8;">Questions</span>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0 text-warning-custom">Algo ELO</h3>
+                        <span class="small" style="opacity: 0.8;">Adaptatif</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Pourquoi choisir EduLearn ?</h2>
+            <p class="text-secondary">Une plateforme conçue par des étudiants ingénieurs, pour des futurs ingénieurs.<br>Chaque fonctionnalité a été pensée pour faciliter l'apprentissage.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card feature-card shadow-sm p-4 h-100">
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                        <i class='bx bx-bolt'></i>
+                    </div>
+                    <h5 class="fw-bold">Difficulté Adaptive</h5>
+                    <p class="text-secondary mb-0">L'algorithme ELO adapte la difficulté des quiz en temps réel selon vos performances.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card feature-card shadow-sm p-4 h-100">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class='bx bx-joystick'></i>
+                    </div>
+                    <h5 class="fw-bold">Gamification</h5>
+                    <p class="text-secondary mb-0">Un système de badges et d'expérience (XP) pour vous motiver et valider vos acquis.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card feature-card shadow-sm p-4 h-100">
+                    <div class="icon-box bg-success bg-opacity-10 text-success">
+                        <i class='bx bx-shield-quarter'></i>
+                    </div>
+                    <h5 class="fw-bold">Anti-triche</h5>
+                    <p class="text-secondary mb-0">Un suivi des clics et limites de temps pour garantir l'intégrité de vos évaluations.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card feature-card shadow-sm p-4 h-100">
+                    <div class="icon-box" style="background-color: rgba(111, 66, 193, 0.1); color: #6f42c1;">
+                        <i class='bx bx-chart-bar-columns'></i>
+                    </div>
+                    <h5 class="fw-bold">Suivi Détaillé</h5>
+                    <p class="text-secondary mb-0">Un tableau de bord avec votre progression ELO globale et vos statistiques par module.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-white">
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="fw-bold">Modules disponibles</h2>
+                <p class="text-secondary mb-0">Découvrez nos modules, testez vos compétences.</p>
+            </div>
+            <a href="#" class="btn btn-outline-primary rounded-pill px-4 fw-semibold d-none d-md-block">Voir tous les cours <i class='bx bx-chevron-right'></i></a>
+        </div>
+
+        {% for course in courses %}
+            <div class="col-md-6">
+            <div class="card course-card h-100 border-0 shadow-sm rounded-4 overflow-hidden">                <div class="position-relative" style="height: 200px; background-color: #f8f9fa;">
+                    {% if course.cover_image %}
+                    <img src="{{ course.cover_image.url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ course.name }}">
+                    {% else %}
+                    <div class="w-100 h-100 d-flex justify-content-center align-items-center bg-primary bg-opacity-10 text-primary">
+                        <i class='bx bx-book-open' style="font-size: 4rem; opacity: 0.5;"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title fw-bold text-dark mb-0">{{ course.name }}</h5>
+                        <span class="badge rounded-pill" style="background-color: {{ course.categorie.color }}">{{ course.categorie.name }}</span>
+                    </div>
+                    <p class="card-text text-secondary mb-4 flex-grow-1" style="font-size: 0.95rem; line-height: 1.6;">
+                        {{ course.description|truncatechars:120 }}
+                    </p>
+                    
+                    <div class="d-flex align-items-center justify-content-between mt-auto pt-3 border-top">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                {% if course.teacher.first_name %}
+                                    {{ course.teacher.first_name|make_list|first|upper }}{% if course.teacher.last_name %}{{ course.teacher.last_name|make_list|first|upper }}{% endif %}
+                                {% else %}
+                                    {{ course.teacher.username|make_list|first|upper }}
+                                {% endif %}
+                            </div>
+                            <span class="text-dark fw-medium" style="font-size: 0.9rem;">
+                                {% if course.teacher.first_name and course.teacher.last_name %}
+                                    {{ course.teacher.first_name }} {{ course.teacher.last_name }}
+                                {% elif course.teacher.first_name %}
+                                    {{ course.teacher.first_name }}
+                                {% else %}
+                                    {{ course.teacher.username }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <a href="{% url 'coursedetail' course.name %}" class="btn btn-sm btn-primary px-3 rounded-pill fw-medium">Consulter</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+</section>
+
+<section class="py-5 leaderboard-bg">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="d-inline-flex align-items-center bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 mb-3">
+                    <i class='bx bx-trophy me-2'></i>
+                    <span class="fw-semibold small">Classement en direct</span>
+                </div>
+                <h2 class="fw-bold mb-4">Montrez votre niveau à votre promo</h2>
+                <p class="text-secondary mb-4">
+                    Chaque quiz réussi vous rapporte des points et fait évoluer votre score ELO. 
+                    Suivez votre progression et mesurez votre niveau par rapport à vos camarades.
+                </p>
+                <ul class="list-unstyled mb-5">
+                    <li class="d-flex align-items-center mb-3">
+                        <i class='bx bx-check-circle text-primary fs-5 me-3'></i> <span class="fw-medium">Gagnez des badges</span>
+                    </li>
+                    <li class="d-flex align-items-center mb-3">
+                        <i class='bx bx-check-circle text-primary fs-5 me-3'></i> <span class="fw-medium">Montez le classement ELO</span>
+                    </li>
+                    <li class="d-flex align-items-center">
+                        <i class='bx bx-check-circle text-primary fs-5 me-3'></i> <span class="fw-medium">Devenez un expert</span>
+                    </li>
+                </ul>
+                <a href="{% url 'leaderboard' %}" class="btn btn-primary fw-bold px-4 py-3 rounded-pill shadow-sm">Voir le classement <i class='bx bx-right-arrow-alt ms-1'></i></a>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card border border-light-subtle shadow-sm rounded-4 overflow-hidden bg-white">
+                    <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                            <i class='bx bx-trophy text-warning'></i> Top 3 Étudiants
+                        </h5>
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fw-semibold small">En direct</span>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for student in top_students %}
+                        <div class="list-group-item d-flex align-items-center gap-3 px-4 py-3 border-bottom-0 {% if not forloop.last %}border-bottom{% endif %}">
+                            <div class="text-center fw-bold" style="width: 30px;">
+                                {% if forloop.counter == 1 %}
+                                    <span class="text-warning fs-5">🥇</span>
+                                {% elif forloop.counter == 2 %}
+                                    <span class="text-secondary fs-5">🥈</span>
+                                {% elif forloop.counter == 3 %}
+                                    <span class="text-danger fs-5" style="color: #cd7f32 !important;">🥉</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                {% if student.first_name %}{{ student.first_name|make_list|first|upper }}{% if student.last_name %}{{ student.last_name|make_list|first|upper }}{% endif %}{% else %}{{ student.username|make_list|first|upper }}{% endif %}
+                            </div>
+                            
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold text-dark">
+                                    <a href="{% url 'profile_with_username' student.username %}" class="text-decoration-none text-dark hover-primary fw-bold">{{ student.get_full_name|default:student.username }}</a>
+                                </h6>
+                                <small class="text-muted">@{{ student.username }}</small>
+                            </div>
+                            
+                            <div class="text-end">
+                                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold" style="font-size: 0.85rem;">
+                                    <i class='bx bxs-star me-1'></i>{{ student.score_global }} pts
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-5">
+                            <i class='bx bx-user-x fs-1 d-block mb-2 text-secondary'></i>
+                            Aucun étudiant enregistré pour le moment.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if not user.is_authenticated %}
+<section class="cta-bg text-white py-5 text-center">
+    <div class="container py-5">
+        <i class='bx bx-lg bx-education bx-remove-padding text-warning' style="font-size: 64px;"></i>
+        <h2 class="fw-bold my-4">Prêt à progresser ?</h2>
+        <p class="lead mb-5 mx-auto" style="max-width: 600px; opacity: 0.9;">
+            Rejoignez EduLearn et commencez à apprendre avec des modules conçus pour les futurs ingénieurs.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/register" class="btn btn-warning-custom rounded-pill px-4 py-2">Commencer gratuitement</a>
+            <a href="/login" class="btn btn-outline-light rounded-pill px-4 py-2">Connexion</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+
+{% endblock %}

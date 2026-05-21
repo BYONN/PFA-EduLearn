@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %} Modifier {{ course.name }} {% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <a href="{% url 'manage_course' course.name %}" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class='bx bx-arrow-out-left-square-half'></i>
+                </a>
+                <h3 class="fw-bold mb-0">Modifier le cours</h3>
+                <div style="width: 40px;"></div> 
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-5">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form.media }}
+
+                        <div class="row g-4">
+                            <div class="col-md-7">
+                                <div class="mb-4">
+                                    <label class="form-label text-secondary small fw-semibold mb-2">{{ form.name.label }} <span class="text-danger">*</span></label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label text-secondary small fw-semibold mb-2">{{ form.description.label }} <span class="text-danger">*</span></label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <div class="mb-4">
+                                    <label class="form-label text-secondary small fw-semibold mb-2">{{ form.categorie.label }} <span class="text-danger">*</span></label>
+                                    {{ form.categorie }}
+                                    {% if form.categorie.errors %}
+                                        <div class="text-danger small mt-1">{{ form.categorie.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label text-secondary small fw-semibold mb-2">{{ form.cover_image.label }}</label>
+                                    <div class="p-3 bg-light rounded-4 border">
+                                        {{ form.cover_image }}
+                                    </div>
+                                    {% if form.cover_image.errors %}
+                                        <div class="text-danger small mt-1">{{ form.cover_image.errors }}</div>
+                                    {% endif %}
+                                    <div class="form-text mt-2"><i class='bx bx-info-circle'></i> Format recommandé : JPG ou PNG, Ratio 16:9</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 mb-5">
+                            <label class="form-label text-secondary small fw-semibold mb-3">{{ form.content.label }} <span class="text-danger">*</span></label>
+                            <div class="border rounded-4 overflow-hidden">
+                                {{ form.content }}
+                            </div>
+                            {% if form.content.errors %}
+                                <div class="text-danger small mt-1">{{ form.content.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 pt-4 border-top">
+                            <a href="{% url 'manage_course' course.name %}" class="btn btn-light px-4 py-3 rounded-pill fw-bold">
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-sm">
+                                <i class='bx bx-save me-1'></i> Enregistrer les modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .django-ckeditor-widget {
+        display: block !important;
+        width: 100% !important;
+    }
+</style>
+{% endblock %}

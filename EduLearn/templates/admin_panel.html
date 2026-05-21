@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %} Panneau Administrateur | EduLearn {% endblock %}
+
+{% block content %}
+<div class="container py-5" style="min-height: calc(100vh - 76px); background-color: #f8f9fa;">
+    
+    {% if messages %}
+        <div class="mb-4">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="d-flex align-items-center mb-5 gap-3 mt-3">
+        <div class="text-white rounded d-flex justify-content-center align-items-center" style="width: 56px; height: 56px; background-color: #8b5cf6;">
+            <i class='bx bx-shield-quarter fs-2'></i>
+        </div>
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Panneau Administrateur</h2>
+            <p class="text-secondary mb-0">Gérez les utilisateurs et les paramètres de la plateforme</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="card border border-light-subtle shadow-sm p-4" style="border-radius: 16px; min-height: 140px;">
+                <div class="d-flex flex-column h-100">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center mb-3" style="width: 44px; height: 44px;">
+                        <i class='bx bx-group fs-4'></i>
+                    </div>
+                    <span class="text-secondary small mb-1">Total utilisateurs</span>
+                    <h3 class="fw-bold mb-0">{{ total_users }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border border-light-subtle shadow-sm p-4" style="border-radius: 16px; min-height: 140px;">
+                <div class="d-flex flex-column h-100">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center mb-3" style="width: 44px; height: 44px;">
+                        <i class='bx bxs-user-detail fs-4'></i>
+                    </div>
+                    <span class="text-secondary small mb-1">Étudiants</span>
+                    <h3 class="fw-bold mb-0">{{ students_count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border border-light-subtle shadow-sm p-4" style="border-radius: 16px; min-height: 140px;">
+                <div class="d-flex flex-column h-100">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex justify-content-center align-items-center mb-3" style="width: 44px; height: 44px;">
+                        <i class='bx bx-user-voice fs-4'></i>
+                    </div>
+                    <span class="text-secondary small mb-1">Professeurs</span>
+                    <h3 class="fw-bold mb-0">{{ professors_count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border border-light-subtle shadow-sm p-4" style="border-radius: 16px; min-height: 140px;">
+                <div class="d-flex flex-column h-100">
+                    <div class="bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center mb-3" style="width: 44px; height: 44px; background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                        <i class='bx bx-book-open fs-4'></i>
+                    </div>
+                    <span class="text-secondary small mb-1">Courses</span>
+                    <h3 class="fw-bold mb-0">{{ course_count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-4 bg-white border border-light-subtle shadow-sm d-inline-flex p-1" style="border-radius: 50px;" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill text-dark d-flex align-items-center gap-2 px-4 fw-medium" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" style="transition: all 0.2s ease;">
+                <i class='bx bx-user'></i> Utilisateurs
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill text-secondary d-flex align-items-center gap-2 px-4 fw-medium" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" style="transition: all 0.2s ease;">
+                <i class='bx bx-cog'></i> Paramètres
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill text-secondary d-flex align-items-center gap-2 px-4 fw-medium" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" style="transition: all 0.2s ease;">
+                <i class='bx bx-shield'></i> Sécurité
+            </button>
+        </li>
+    </ul>
+
+    <style>
+        .nav-pills .nav-link.active {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            color: #212529 !important;
+        }
+        .nav-pills .nav-link:not(.active):hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+
+    <div class="tab-content" id="adminTabsContent">
+        
+        <div class="tab-pane fade show active" id="users" role="tabpanel">
+            <div class="card border border-light-subtle shadow-sm overflow-hidden" style="border-radius: 16px;">
+                <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Gestion des utilisateurs</h5>
+                    <div class="position-relative">
+                        <i class='bx bx-search position-absolute top-50 translate-middle-y text-secondary' style="left: 1rem;"></i>
+                        <input type="text" id="user-search-input" class="form-control border-0 bg-light" placeholder="Rechercher..." style="padding-left: 2.5rem; border-radius: 8px;">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 border-light-subtle bg-white">
+                        <thead class="bg-light text-secondary small" style="text-transform: uppercase;">
+                            <tr>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0" style="width: 25%;">Utilisateur</th>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0" style="width: 25%;">Email</th>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0" style="width: 20%;">Rôle</th>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0" style="width: 10%;">Score</th>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0" style="width: 10%;">Badges</th>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0 text-end" style="width: 10%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body">
+                            {% for u in users %}
+                            <tr>
+                                <td class="py-3 px-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 36px; height: 36px; font-size: 0.9rem;">
+                                            {% if u.first_name %}
+                                                {{ u.first_name|make_list|first|upper }}{% if u.last_name %}{{ u.last_name|make_list|first|upper }}{% endif %}
+                                            {% else %}
+                                                {{ u.username|make_list|first|upper }}
+                                            {% endif %}
+                                        </div>
+                                        <span class="fw-semibold text-dark">{{ u.get_full_name|default:u.username }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-secondary">{{ u.email }}</td>
+                                <td class="py-3 px-4">
+                                    {% if u.is_superuser %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-medium">Admin</span>
+                                    {% else %}
+                                    <form method="POST" action="{% url 'admin_panel' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="change_role">
+                                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                                        <select name="role" onchange="this.form.submit()" class="form-select form-select-sm d-inline-block border border-light-subtle rounded-pill px-3 py-1 fw-medium" style="width: auto; background-color: #f8f9fa;">
+                                            <option value="etudiant" {% if u.role == 'etudiant' or 'etudiant' in u.role or u.role == '{}' or u.role == '' %}selected{% endif %}>Étudiant</option>
+                                            <option value="professeur" {% if u.role == 'professeur' or 'professeur' in u.role %}selected{% endif %}>Professeur</option>
+                                        </select>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4 fw-bold text-primary">{{ u.score_global }}</td>
+                                <td class="py-3 px-4 text-secondary fw-bold">{{ u.userbadge_set.count }}</td>
+                                <td class="py-3 px-4 text-end">
+                                    {% if request.user != u %}
+                                    <form method="POST" action="{% url 'admin_panel' %}" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_user">
+                                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                                        <button type="submit" class="btn btn-sm border border-danger text-danger bg-transparent rounded-3 px-2 py-1">
+                                            <i class='bx bx-trash fs-5 align-middle'></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted small">Vous</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="settings" role="tabpanel">
+            <form method="POST" action="{% url 'admin_panel' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_settings">
+                
+                <div class="card border border-light-subtle shadow-sm mb-4" style="border-radius: 16px;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                            <i class='bx bx-cog text-secondary'></i> Paramètres généraux
+                        </h5>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h6 class="fw-semibold mb-1">Autoriser les inscriptions</h6>
+                                <p class="text-secondary small mb-0">Les nouveaux utilisateurs peuvent s'inscrire</p>
+                            </div>
+                            <div class="form-check form-switch fs-4 mb-0">
+                                <input class="form-check-input shadow-none" type="checkbox" role="switch" name="allow_registration" {% if settings.allow_registration %}checked{% endif %}>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h6 class="fw-semibold mb-1">Classement public</h6>
+                                <p class="text-secondary small mb-0">Le classement est visible par tous</p>
+                            </div>
+                            <div class="form-check form-switch fs-4 mb-0">
+                                <input class="form-check-input shadow-none" type="checkbox" role="switch" name="display_leaderboard" {% if settings.display_leaderboard %}checked{% endif %}>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h6 class="fw-semibold mb-1">Chronomètre desactivé</h6>
+                                <p class="text-secondary small mb-0">Le temps est limité pour les quiz</p>
+                            </div>
+                            <div class="form-check form-switch fs-4 mb-0">
+                                <input class="form-check-input shadow-none" type="checkbox" role="switch" name="disable_chronometer" {% if settings.disable_chronometer %}checked{% endif %}>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-semibold mb-1">Mode maintenance</h6>
+                                <p class="text-secondary small mb-0">La plateforme est inaccessible aux utilisateurs</p>
+                            </div>
+                            <div class="form-check form-switch fs-4 mb-0">
+                                <input class="form-check-input shadow-none" type="checkbox" role="switch" name="maintenance_mode" {% if settings.maintenance_mode %}checked{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                
+                <div class="text-start">
+                    <button type="submit" class="btn btn-primary fw-bold px-4 py-2" style="border-radius: 8px;">Sauvegarder les modifications</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="tab-pane fade" id="security" role="tabpanel">
+            <div class="card border border-light-subtle shadow-sm overflow-hidden" style="border-radius: 16px;">
+                <div class="card-header bg-white border-bottom p-4">
+                    <h5 class="fw-bold mb-0">Alertes Anti-Triche et Journal d'Audit</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 bg-white">
+                        <thead class="bg-light text-secondary small" style="text-transform: uppercase;">
+                            <tr>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0">Étudiant</th>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0">Quiz</th>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0">Cours</th>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0">Score d'Origine</th>
+                                <th class="py-3 px-4 fw-semibold border-bottom-0 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in cheat_attempts %}
+                            <tr>
+                                <td class="py-3 px-4 fw-semibold text-dark">{{ attempt.user.get_full_name|default:attempt.user.username }}</td>
+                                <td class="py-3 px-4 text-secondary">{{ attempt.quiz.name }}</td>
+                                <td class="py-3 px-4 text-secondary">{{ attempt.quiz.course.name }}</td>
+                                <td class="py-3 px-4 text-danger fw-bold">{{ attempt.score }}%</td>
+                                <td class="py-3 px-4 text-end">
+                                    <form method="POST" action="{% url 'admin_panel' %}" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir réinitialiser l\'alerte de triche pour cette tentative ?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="reset_cheat_alert">
+                                        <input type="hidden" name="attempt_id" value="{{ attempt.id }}">
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-semibold text-white shadow-sm" style="font-size: 0.85rem; border: none;">
+                                            <i class='bx bx-check-shield me-1 align-middle'></i> Pardonner & Réinitialiser
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">
+                                    <i class='bx bx-check-shield fs-1 d-block mb-2 text-success'></i>
+                                    <h6 class="fw-bold text-dark mb-1">Aucune alerte de triche active</h6>
+                                    <p class="text-secondary small mb-0">Tous les étudiants se comportent bien !</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Tab switching style toggle
+    const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]')
+    tabEls.forEach(tabEl => {
+        tabEl.addEventListener('show.bs.tab', event => {
+            document.querySelectorAll('.nav-pills .nav-link').forEach(el => {
+                el.classList.remove('active', 'text-dark');
+                el.classList.add('text-secondary');
+            });
+            event.target.classList.add('active', 'text-dark');
+            event.target.classList.remove('text-secondary');
+        })
+    });
+
+    // Real-time client-side search and filtering for the user table
+    document.getElementById('user-search-input').addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#user-table-body tr');
+        rows.forEach(row => {
+            const rowText = row.textContent.toLowerCase();
+            row.style.display = rowText.includes(term) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

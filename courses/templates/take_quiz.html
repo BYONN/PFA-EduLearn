@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %} Quiz: {{ course.name }} {% endblock %}
+
+{% block content %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+<div class="bg-light py-4 border-bottom">
+    <div class="container d-flex align-items-center justify-content-between">
+        <h4 class="mb-0 fw-bold">{{ course.name }} - Évaluation</h4>
+        
+        <div class="d-flex align-items-center bg-white px-4 py-2 rounded-pill shadow-sm border" id="timer-container">
+            <i class='bx bx-time-five fs-4 text-primary me-2'></i>
+            <span class="fs-5 fw-bold font-monospace" id="timer">--:--</span>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-secondary" id="progress-text">Question 1 sur --</span>
+                <div class="progress w-75 rounded-pill" style="height: 10px;">
+                    <div id="progress-bar" class="progress-bar bg-primary rounded-pill" role="progressbar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative">
+                <div class="card-body p-5" id="question-container">
+                    <div class="text-center py-5">
+                        <i class='bx bx-loader-alt bx-spin fs-1 text-primary'></i>
+                        <p class="mt-3 text-secondary">Chargement de la question...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="badge-toast-container" style="
+    position: fixed; top: 20px; right: 20px; z-index: 9999;
+    display: flex; flex-direction: column; gap: 12px;
+"></div>
+
+<div class="modal fade" id="cheatModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-body p-5 text-center">
+                <div class="mb-4">
+                    <i class='bx bx-error-circle text-danger' style="font-size: 5rem;"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-3">Attention !</h4>
+                <p class="text-secondary mb-4">Vous avez quitté l'onglet du quiz. Le système a enregistré cet événement comme une tentative de fraude potentielle.</p>
+                <button type="button" class="btn btn-danger px-5 py-2 rounded-pill fw-bold" data-bs-dismiss="modal">Je comprends</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .choice-label {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .choice-label:hover {
+        background-color: #f8f9fa;
+        border-color: #0d6efd !important;
+    }
+    .choice-radio:checked + .choice-label {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd !important;
+    }
+    
+    /* Custom Code Block Styling */
+    pre {
+        background-color: #1d1f21 !important;
+        color: #c5c8c6 !important;
+        padding: 1rem !important;
+        border-radius: 0.5rem !important;
+        overflow-x: auto;
+        font-family: 'Courier New', Courier, monospace;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+
+<script>
+    function escapeHTML(str) {
+        if (!str) return '';
+        // 1. Decode any existing HTML entities to avoid double-escaping
+        const txt = document.createElement("textarea");
+        txt.innerHTML = str;
+        const decoded = txt.value;
+        
+        // 2. Escape HTML special characters for safe rendering
+        return decoded
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    const API_URL = "{% url 'api_quiz_action' attempt.id %}";
+    let currentQuestionId = null;
+    let selectedChoiceId = null;
+    let questionStartTime = null;
+
+    // Timer logic
+    const disableChronometer = {% if disable_chronometer %}true{% else %}false{% endif %};
+    let timeLeft = {{ quiz.time_limit_minutes }} * 60;
+    const timerElement = document.getElementById('timer');
+    const timerContainer = document.getElementById('timer-container');
+
+    if (disableChronometer) {
+        if (timerContainer) {
+            timerContainer.style.setProperty('display', 'none', 'important');
+        }
+    } else {
+        function updateTimer() {
+            if (timeLeft <= 0) {
+                timerElement.textContent = "00:00";
+                alert("Temps écoulé ! Vos réponses vont être soumises.");
+                forceSubmit();
+                return;
+            }
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft < 60) {
+                timerElement.classList.add('text-danger');
+            }
+            timeLeft--;
+            setTimeout(updateTimer, 1000);
+        }
+        
+        // Auto-start Timer
+        updateTimer();
+    }
+
+    // Fetch Question
+    async function fetchQuestion(actionData) {
+        document.getElementById('question-container').innerHTML = `
+            <div class="text-center py-5">
+                <i class='bx bx-loader-alt bx-spin fs-1 text-primary'></i>
+                <p class="mt-3 text-secondary">Préparation de la prochaine question...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(actionData)
+            });
+            const data = await response.json();
+
+            if (data.status === 'finished') {
+                window.location.href = data.redirect;
+            } else if (data.status === 'next_question') {
+                renderQuestion(data.question, data.progress);
+            } else {
+                alert("Erreur serveur.");
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function renderQuestion(question, progress) {
+        currentQuestionId = question.id;
+        selectedChoiceId = null;
+        questionStartTime = Date.now();
+
+        // Update progress
+        document.getElementById('progress-text').textContent = `Question ${progress.current} sur ${progress.total}`;
+        document.getElementById('progress-bar').style.width = `${(progress.current / progress.total) * 100}%`;
+
+        // Build HTML
+        let html = `
+            <div class="mb-3">
+                <span class="badge bg-secondary px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px;">
+                    <i class='bx bx-brain me-1'></i> Difficulté ELO : ${question.difficulty || 'N/A'}
+                </span>
+            </div>
+            <div class="fw-bold mb-4 fs-4 lh-base">${question.text}</div>
+            <div class="d-flex flex-column gap-3">
+        `;
+
+        question.choices.forEach(c => {
+            html += `
+                <div>
+                    <input type="radio" name="choice" id="choice_${c.id}" class="d-none choice-radio" value="${c.id}" onchange="selectChoice(${c.id})">
+                    <label for="choice_${c.id}" class="choice-label d-block p-3 border rounded-3 fw-medium">
+                        ${escapeHTML(c.text)}
+                    </label>
+                </div>
+            `;
+        });
+
+        html += `
+            </div>
+            <div class="mt-5 text-end">
+                <button class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-sm" id="btn-next" onclick="submitAnswer()" disabled>
+                    Valider & Suivant <i class='bx bx-right-arrow-alt ms-1'></i>
+                </button>
+            </div>
+        `;
+
+        document.getElementById('question-container').innerHTML = html;
+
+        // Apply syntax highlighting to code blocks
+        const preBlocks = document.querySelectorAll('#question-container pre');
+        preBlocks.forEach(pre => {
+            // If the pre block doesn't have a code tag inside (like when using basic CKEditor preformatted text)
+            if (!pre.querySelector('code')) {
+                const code = document.createElement('code');
+                // Default to python syntax for coloring, but it looks good for most things
+                code.className = 'language-python';
+                code.innerHTML = pre.innerHTML;
+                pre.innerHTML = '';
+                pre.appendChild(code);
+            }
+        });
+        
+        if (window.Prism) {
+            Prism.highlightAll();
+        }
+    }
+
+    function selectChoice(id) {
+        selectedChoiceId = id;
+        document.getElementById('btn-next').disabled = false;
+    }
+
+    function submitAnswer() {
+        if (!selectedChoiceId) return;
+        const timeTaken = Math.round((Date.now() - questionStartTime) / 1000);
+        fetchQuestion({
+            action: 'submit_answer',
+            question_id: currentQuestionId,
+            choice_id: selectedChoiceId,
+            time_taken: timeTaken
+        });
+    }
+
+    function forceSubmit() {
+        // Just trigger submit with whatever is selected (or null), backend handles it
+        window.location.href = "{% url 'quiz_result' course.name attempt.id %}";
+    }
+
+    // Start
+    fetchQuestion({ action: 'get_first_question' });
+
+    // Anti-cheat (Tab Switching)
+    let cheatCount = 0;
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') {
+            cheatCount++;
+
+            if (cheatCount < 3) {
+                var myModal = new bootstrap.Modal(document.getElementById('cheatModal'));
+                myModal.show();
+            } else if (cheatCount === 3) {
+                // Only flag as cheat on the server when the threshold is actually reached
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ action: 'report_cheat' })
+                });
+                var myModal = new bootstrap.Modal(document.getElementById('cheatModal'));
+                myModal.show();
+            } else {
+                alert("Vous avez quitté la page trop de fois. Le quiz va être soumis automatiquement.");
+                forceSubmit();
+            }
+        }
+    });
+
+    // Block right-click and copying
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('copy', event => {
+        event.preventDefault();
+        alert("La copie est désactivée pendant le quiz.");
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Classement — EduLearn{% endblock %}
+
+{% block content %}
+{% if disabled %}
+<div class="container py-5 text-center" style="min-height: calc(100vh - 150px); display: flex; align-items: center; justify-content: center;">
+    <div class="card border border-light-subtle shadow-sm p-5 mx-auto" style="border-radius: 24px; max-width: 500px;">
+        <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px; font-size: 2.5rem;">
+            <i class='bx bx-lock-alt'></i>
+        </div>
+        <h3 class="fw-bold text-dark mb-2">Classement Indisponible</h3>
+        <p class="text-secondary mb-4">Le classement public a été temporairement désactivé par l'administrateur de la plateforme.</p>
+        <a href="/" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">Retour à l'accueil</a>
+    </div>
+</div>
+{% else %}
+<div class="bg-light py-5 border-bottom">
+    <div class="container text-center">
+        <i class='bx bx-trophy text-warning mb-3' style="font-size: 4rem;"></i>
+        <h2 class="fw-bold text-dark">Classement Global</h2>
+        <p class="text-secondary mb-0">Découvrez les meilleurs étudiants de la plateforme.</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="px-4 py-3 border-bottom bg-white rounded-top-4 d-flex align-items-center gap-2">
+                        <i class='bx bx-list-ol fs-4 text-primary'></i>
+                        <span class="fw-bold fs-5">Top Étudiants</span>
+                    </div>
+                    
+                    <div class="list-group list-group-flush rounded-bottom-4">
+                        {% for user in top_users %}
+                        <div class="list-group-item d-flex align-items-center gap-3 px-4 py-3 border-bottom-0 {% if not forloop.last %}border-bottom{% endif %} {% if request.user == user %}bg-light{% endif %}">
+                            <div class="text-center fw-bold" style="width: 30px;">
+                                {% if forloop.counter == 1 %}
+                                    <span class="text-warning fs-5">🥇</span>
+                                {% elif forloop.counter == 2 %}
+                                    <span class="text-secondary fs-5">🥈</span>
+                                {% elif forloop.counter == 3 %}
+                                    <span class="text-danger fs-5" style="color: #cd7f32 !important;">🥉</span>
+                                {% else %}
+                                    <span class="text-muted">{{ forloop.counter }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px;">
+                                {% if user.first_name %}{{ user.first_name|make_list|first|upper }}{% if user.last_name %}{{ user.last_name|make_list|first|upper }}{% endif %}{% else %}{{ user.username|make_list|first|upper }}{% endif %}
+                            </div>
+                            
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold text-dark">
+                                    <a href="{% url 'profile_with_username' user.username %}" class="text-decoration-none text-dark hover-primary fw-bold">{{ user.get_full_name|default:user.username }}</a>
+                                    {% if request.user == user %}
+                                        <span class="badge bg-primary ms-2" style="font-size: 0.7rem;">Vous</span>
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">@{{ user.username }}</small>
+                            </div>
+                            
+                            <div class="text-end">
+                                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold" style="font-size: 0.9rem;">
+                                    <i class='bx bxs-star me-1'></i>{{ user.score_global }} pts
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-5">
+                            <i class='bx bx-user-x fs-1 d-block mb-2'></i>
+                            Aucun étudiant inscrit pour le moment.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

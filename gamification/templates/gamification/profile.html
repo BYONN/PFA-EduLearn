@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Profil — EduLearn{% endblock %}
+
+{% block content %}
+<style>
+    .profile-hero {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        padding: 4rem 0;
+        color: white;
+    }
+    .avatar-xl {
+        width: 90px; height: 90px; border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.2rem; font-weight: 700; color: white;
+        flex-shrink: 0;
+        box-shadow: 0 0 0 4px rgba(99,102,241,0.3);
+    }
+    .stat-card {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+        transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-4px); }
+
+    .badge-item {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-radius: 16px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 2px solid #fbbf24;
+        box-shadow: 0 4px 12px rgba(251,191,36,0.2);
+    }
+    .badge-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(251,191,36,0.35);
+    }
+    .badge-icon { font-size: 2.8rem; }
+
+    .attempt-row { border-radius: 10px; transition: background 0.15s; }
+    .attempt-row:hover { background: #f8f9ff; }
+
+    .score-pill {
+        border-radius: 20px; padding: 3px 14px;
+        font-weight: 700; font-size: 0.85rem;
+    }
+    .score-pass { background: #d1fae5; color: #065f46; }
+    .score-fail { background: #fee2e2; color: #991b1b; }
+
+    .progress-thin { height: 8px; border-radius: 4px; }
+</style>
+
+<div class="profile-hero">
+    <div class="container">
+        <div class="d-flex align-items-center gap-4">
+            <div class="avatar-xl">
+                {% if request.user.first_name %}{{ request.user.first_name|make_list|first|upper }}{% if request.user.last_name %}{{ request.user.last_name|make_list|first|upper }}{% endif %}{% else %}{{ request.user.username|make_list|first|upper }}{% endif %}
+            </div>
+            <div>
+                <h1 class="fw-bold mb-1" style="font-size: 2rem;">
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </h1>
+                <div class="d-flex align-items-center gap-3">
+                    <span style="opacity:0.7;">@{{ request.user.username }}</span>
+                    <span class="badge bg-primary">Étudiant</span>
+                    <span class="badge" style="background: linear-gradient(135deg,#ffd700,#ffaa00); color:#1a1a2e;">
+                        <i class='bx bx-star me-1'></i>{{ request.user.score_global }} pts
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card text-center p-4">
+                <div class="fw-bold text-primary mb-1" style="font-size: 2.2rem;">{{ total }}</div>
+                <div class="text-muted small">Quiz passés</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card text-center p-4">
+                <div class="fw-bold text-success mb-1" style="font-size: 2.2rem;">{{ passed }}</div>
+                <div class="text-muted small">Réussis</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card text-center p-4">
+                <div class="fw-bold text-danger mb-1" style="font-size: 2.2rem;">{{ failed }}</div>
+                <div class="text-muted small">Échoués</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card text-center p-4">
+                <div class="fw-bold mb-1" style="font-size: 2.2rem; color: #6366f1;">{{ avg_score }}%</div>
+                <div class="text-muted small">Score moyen</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-0">
+                    <div class="px-4 py-3 border-bottom d-flex align-items-center gap-2">
+                        <i class='bx bx-history fs-4 text-primary'></i>
+                        <span class="fw-bold fs-5">Historique des quiz</span>
+                    </div>
+                    {% for attempt in attempts %}
+                    <div class="d-flex align-items-center gap-3 px-4 py-3 attempt-row {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold text-dark">{{ attempt.quiz.name }}</div>
+                            <div class="small text-muted">
+                                {{ attempt.quiz.course.name }} &bull;
+                                {{ attempt.started_at|date:"d M Y à H:i" }}
+                            </div>
+                        </div>
+                        <span class="score-pill {% if attempt.score >= 50 %}score-pass{% else %}score-fail{% endif %}">
+                            {{ attempt.score }}%
+                        </span>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-5">
+                        <i class='bx bx-book-reader fs-1 d-block mb-2'></i>
+                        Aucun quiz passé pour l'instant.<br>
+                        <a href="{% url 'courses' %}" class="btn btn-primary mt-3 rounded-pill px-4">Découvrir les cours</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if total > 0 %}
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body px-4 py-4">
+                    <div class="fw-bold mb-3">Taux de réussite</div>
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>{{ passed }} réussi{{ passed|pluralize }}</span>
+                        <span>{% widthratio passed total 100 %}%</span>
+                    </div>
+                    <div class="progress progress-thin">
+                        <div class="progress-bar bg-success" style="width: {% widthratio passed total 100 %}%;"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-0">
+                    <div class="px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class='bx bxs-badge-check fs-4 text-warning'></i>
+                            <span class="fw-bold fs-5">Mes badges</span>
+                        </div>
+                        <span class="badge bg-warning text-dark">{{ user_badges|length }}</span>
+                    </div>
+                    <div class="p-4">
+                        {% if user_badges %}
+                        <div class="row g-3">
+                            {% for ub in user_badges %}
+                            <div class="col-6">
+                                <div class="badge-item" title="{{ ub.badge.description }}">
+                                    <div class="badge-icon mb-2">
+                                        {% if ub.badge.name == "Première Victoire" %}🥇
+                                        {% elif ub.badge.name == "Sans Faute" %}✨
+                                        {% elif ub.badge.name == "Boulimique de Savoir" %}📚
+                                        {% elif ub.badge.name == "Série Gagnante" %}🔥
+                                        {% elif ub.badge.name == "Expert" %}🏆
+                                        {% else %}🎖️{% endif %}
+                                    </div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.85rem;">{{ ub.badge.name }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">{{ ub.badge.description }}</div>
+                                    <div class="text-muted mt-2" style="font-size: 0.7rem;">{{ ub.unlocked_at|date:"d M Y" }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        {% else %}
+                        <div class="text-center py-4">
+                            <div style="font-size: 3rem;">🔒</div>
+                            <p class="text-muted mt-3 mb-3">Aucun badge débloqué.<br>Réussissez des quiz pour en gagner !</p>
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="small fw-bold text-muted mb-2">Badges disponibles :</div>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-2 small text-muted">
+                                    <span>🥇</span><span>Première Victoire — Réussir un quiz</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 small text-muted">
+                                    <span>✨</span><span>Sans Faute — Score parfait (100%)</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 small text-muted">
+                                    <span>📚</span><span>Boulimique de Savoir — 3 cours inscrits</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 small text-muted">
+                                    <span>🔥</span><span>Série Gagnante — 3 quiz réussis de suite</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 small text-muted">
+                                    <span>🏆</span><span>Expert — 500 points accumulés</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

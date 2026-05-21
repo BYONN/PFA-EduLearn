@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if request.user == profile_user %}Mon Profil{% else %}Profil de {{ profile_user.get_full_name|default:profile_user.username }}{% endif %} — EduLearn{% endblock %}
+
+{% block content %}
+<div class="bg-light py-5 border-bottom">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8 d-flex align-items-center gap-4">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; font-size: 2rem;">
+                    {% if profile_user.first_name %}{{ profile_user.first_name|make_list|first|upper }}{% if profile_user.last_name %}{{ profile_user.last_name|make_list|first|upper }}{% endif %}{% else %}{{ profile_user.username|make_list|first|upper }}{% endif %}
+                </div>
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">{{ profile_user.get_full_name|default:profile_user.username }}</h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-secondary">@{{ profile_user.username }}</span>
+                        <span class="badge bg-secondary">
+                            {% if profile_user.role == 'etudiant' %}
+                                Étudiant
+                            {% elif profile_user.role == 'professeur' %}
+                                Professeur
+                            {% else %}
+                                Admin
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                <div class="card border-0 shadow-sm d-inline-block text-center px-4 py-3 rounded-4">
+                    <div class="text-muted small fw-bold text-uppercase">Score Global</div>
+                    <div class="text-warning fw-bold fs-3"><i class='bx bxs-star'></i> {{ profile_user.score_global }} pts</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3">
+                <div class="fs-3 fw-bold text-primary">{{ total }}</div>
+                <div class="text-muted small">Quiz passés</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3">
+                <div class="fs-3 fw-bold text-success">{{ passed }}</div>
+                <div class="text-muted small">Réussis</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3">
+                <div class="fs-3 fw-bold text-danger">{{ failed }}</div>
+                <div class="text-muted small">Échoués</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-3">
+                <div class="fs-3 fw-bold text-dark">{{ avg_score }}%</div>
+                <div class="text-muted small">Moyenne</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-0">
+                    <div class="px-4 py-3 border-bottom d-flex align-items-center gap-2">
+                        <i class='bx bx-history fs-4 text-primary'></i>
+                        <span class="fw-bold fs-5">Historique des quiz</span>
+                    </div>
+                    <div class="list-group list-group-flush rounded-bottom-4">
+                        {% for attempt in attempts %}
+                        <div class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold text-dark">{{ attempt.quiz.name }}</h6>
+                                <small class="text-muted">{{ attempt.quiz.course.name }} &bull; {{ attempt.started_at|date:"d M Y à H:i" }}</small>
+                            </div>
+                            <span class="badge {% if attempt.score >= 50 %}bg-success{% else %}bg-danger{% endif %} rounded-pill px-3 py-2">
+                                {{ attempt.score }}%
+                            </span>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-5">
+                            <i class='bx bx-book-reader fs-1 d-block mb-2'></i>
+                            Aucun quiz passé pour l'instant.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if total > 0 %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body px-4 py-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Taux de réussite</span>
+                        <span class="text-muted small">{% widthratio passed total 100 %}%</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" style="width: {% widthratio passed total 100 %}%;"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-0">
+                    <div class="px-4 py-3 border-bottom d-flex align-items-center gap-2">
+                        <i class='bx bx-brain fs-4 text-info'></i>
+                        <span class="fw-bold fs-5">Niveaux de Compétence AI (ELO)</span>
+                    </div>
+                    <div class="p-4">
+                        {% if competences %}
+                        <div class="d-flex flex-column gap-3">
+                            {% for comp in competences %}
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold text-dark">{{ comp.category.name }}</span>
+                                    <span class="badge bg-info text-white rounded-pill px-3 py-1 fw-bold">{{ comp.estimated_level|stringformat:".0f" }} ELO</span>
+                                </div>
+                                <div class="progress rounded-pill mb-1" style="height: 6px;">
+                                    {% if comp.estimated_level < 1300 %}
+                                        <div class="progress-bar bg-danger rounded-pill" style="width: 30%;"></div>
+                                    {% elif comp.estimated_level < 1500 %}
+                                        <div class="progress-bar bg-warning rounded-pill" style="width: 55%;"></div>
+                                    {% elif comp.estimated_level < 1700 %}
+                                        <div class="progress-bar bg-success rounded-pill" style="width: 80%;"></div>
+                                    {% else %}
+                                        <div class="progress-bar bg-primary rounded-pill" style="width: 100%;"></div>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted" style="font-size: 0.75rem;">
+                                        Niveau : 
+                                        {% if comp.estimated_level < 1300 %}
+                                            <span class="text-danger fw-semibold">Débutant</span>
+                                        {% elif comp.estimated_level < 1500 %}
+                                            <span class="text-warning fw-semibold">Intermédiaire</span>
+                                        {% elif comp.estimated_level < 1700 %}
+                                            <span class="text-success fw-semibold">Avancé</span>
+                                        {% else %}
+                                            <span class="text-primary fw-semibold">Expert</span>
+                                        {% endif %}
+                                    </small>
+                                    <small class="text-muted" style="font-size: 0.7rem; opacity: 0.7;">Calibré par IA</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class='bx bx-info-circle fs-2 d-block mb-1 text-info'></i>
+                            Commencez à passer des quiz pour calibrer vos niveaux Elo AI !
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class='bx bxs-badge-check fs-4 text-warning'></i>
+                            <span class="fw-bold fs-5">Badges</span>
+                        </div>
+                        <span class="badge bg-warning text-dark">{{ user_badges|length }}</span>
+                    </div>
+                    <div class="p-4">
+                        {% if user_badges %}
+                        <div class="row g-3">
+                            {% for badge in user_badges %}
+                            <div class="col-6 text-center">
+                                <div class="p-3 border rounded-3 bg-light h-100">
+                                    <div class="fs-1 mb-2">
+                                        <img src="{{ badge.badge.image.url }}" alt="{{ badge.badge.name }}" height="100px" width="100px">
+                                    </div>
+                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">{{ badge.badge.name }}</h6>
+                                    <small class="text-muted d-block lh-sm" style="font-size: 0.8rem;">{{ badge.badge.description }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class='bx bx-lock-alt fs-1 d-block mb-2'></i>
+                            Aucun badge débloqué pour le moment.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

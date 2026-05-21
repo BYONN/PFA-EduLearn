@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %} Modifier Quiz - {{ course.name }} {% endblock %}
+
+{% block content %}
+<div class="bg-light py-4 border-bottom">
+    <div class="container d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'manage_course' course.name %}" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                <i class='bx bx-arrow-out-left-square-half'></i>
+            </a>
+            <h4 class="mb-0 fw-bold">Modifier le Quiz</h4>
+        </div>
+        <button type="button" onclick="submitQuiz()" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm" id="save-btn">
+            <i class='bx bx-save me-1'></i> Enregistrer les modifications
+        </button>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="card border-0 shadow-sm rounded-4 mb-5">
+                <div class="card-header bg-white border-0 p-4 pb-0">
+                    <h5 class="fw-bold mb-0 text-primary"><i class='bx bx-cog me-2'></i> Configuration Générale</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-bold">Titre du Quiz</label>
+                            <input type="text" id="quiz-name" class="form-control bg-light border-0 py-2 px-3" value="{{ quiz.name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Temps limite (Min)</label>
+                            <input type="number" id="quiz-time" class="form-control bg-light border-0 py-2 px-3" value="{{ quiz.time_limit_minutes }}" min="1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Tentatives max</label>
+                            <input type="number" id="quiz-attempts" class="form-control bg-light border-0 py-2 px-3" value="{{ quiz.max_attempts }}" min="1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="questions-container">
+            </div>
+
+            <div class="text-center mt-5">
+                <button type="button" onclick="addQuestion()" class="btn btn-outline-primary px-5 py-3 rounded-pill fw-bold border-2 bg-white shadow-sm">
+                    <i class='bx bx-plus fs-5 align-middle'></i> Ajouter une question
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<template id="question-template">
+    <div class="card border-0 shadow-sm rounded-4 mb-4 question-card">
+        <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0 text-dark question-number">Question 1</h6>
+            <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle delete-btn" onclick="this.closest('.question-card').remove(); updateQuestionNumbers();">
+                <i class='bx bx-trash'></i>
+            </button>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <label class="form-label text-secondary small fw-bold">Texte de la question (HTML autorisé)</label>
+                    <textarea class="form-control bg-light border-0 py-3 q-text" rows="3" placeholder="Question ici..."></textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label text-secondary small fw-bold">Difficulté (Score Elo, par défaut 1200)</label>
+                    <input type="number" class="form-control bg-light border-0 py-2 q-difficulty" value="1200">
+                </div>
+            </div>
+
+            <h6 class="fw-bold mb-3 small text-secondary">Réponses (Cochez la bonne réponse)</h6>
+            <div class="choices-container">
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary mt-2 px-3 rounded-pill" onclick="addChoice(this)">
+                <i class='bx bx-plus me-1'></i> Ajouter une option
+            </button>
+        </div>
+    </div>
+</template>
+
+<script>
+    let questionCounter = 0;
+    const initialData = JSON.parse('{{ quiz_data_json|escapejs }}');
+
+    function addQuestion() {
+        questionCounter++;
+        const template = document.getElementById('question-template');
+        const clone = template.content.cloneNode(true);
+
+        // Update radio button group name so each question has its own correct answer
+        const radios = clone.querySelectorAll('.q-correct');
+        radios.forEach(radio => radio.name = `correct_q${questionCounter}`);
+
+        // Add 2 default empty options
+        const choicesContainer = clone.querySelector('.choices-container');
+        choicesContainer.appendChild(createChoiceElement(`correct_q${questionCounter}`, 1, '', true));
+        choicesContainer.appendChild(createChoiceElement(`correct_q${questionCounter}`, 2, '', false));
+
+        document.getElementById('questions-container').appendChild(clone);
+        updateQuestionNumbers();
+    }
+
+    function addQuestionWithData(q) {
+        questionCounter++;
+        const template = document.getElementById('question-template');
+        const clone = template.content.cloneNode(true);
+
+        const radios = clone.querySelectorAll('.q-correct');
+        radios.forEach(radio => radio.name = `correct_q${questionCounter}`);
+
+        // Set populated values
+        clone.querySelector('.q-text').value = q.text;
+        clone.querySelector('.q-difficulty').value = q.difficulty;
+
+        const choicesContainer = clone.querySelector('.choices-container');
+        
+        q.choices.forEach((c, index) => {
+            choicesContainer.appendChild(createChoiceElement(`correct_q${questionCounter}`, index + 1, c.text, c.is_correct));
+        });
+
+        document.getElementById('questions-container').appendChild(clone);
+        updateQuestionNumbers();
+    }
+
+    function createChoiceElement(radioName, index, text, isCorrect) {
+        const div = document.createElement('div');
+        div.className = 'd-flex align-items-center mb-2 choice-row';
+        div.innerHTML = `
+            <input type="radio" name="${radioName}" class="form-check-input me-3 mt-0 q-correct" ${isCorrect ? 'checked' : ''}>
+            <input type="text" class="form-control bg-light border-0 py-2 q-choice" placeholder="Option ${index}">
+            <button type="button" class="btn btn-sm text-danger ms-2 border-0 bg-transparent" onclick="this.closest('.choice-row').remove()">
+                <i class='bx bx-x fs-5'></i>
+            </button>
+        `;
+        // Safely set the value via property to prevent quotes from breaking the HTML attribute syntax
+        div.querySelector('.q-choice').value = text;
+        return div;
+    }
+
+    function updateQuestionNumbers() {
+        const cards = document.querySelectorAll('.question-card');
+        cards.forEach((card, index) => {
+            card.querySelector('.question-number').textContent = `Question ${index + 1}`;
+        });
+    }
+
+    function addChoice(btn) {
+        const choicesContainer = btn.previousElementSibling;
+        const qCard = btn.closest('.question-card');
+        const radioName = qCard.querySelector('.q-correct').name;
+        const optionCount = choicesContainer.querySelectorAll('.choice-row').length + 1;
+        
+        choicesContainer.appendChild(createChoiceElement(radioName, optionCount, '', false));
+    }
+
+    // Populate existing quiz data on load
+    document.addEventListener("DOMContentLoaded", function() {
+        if (initialData.questions && initialData.questions.length > 0) {
+            initialData.questions.forEach(q => {
+                addQuestionWithData(q);
+            });
+        } else {
+            addQuestion();
+        }
+    });
+
+    async function submitQuiz() {
+        const btn = document.getElementById('save-btn');
+        btn.innerHTML = "<i class='bx bx-loader-alt bx-spin me-1'></i> Enregistrement...";
+        btn.disabled = true;
+
+        // Collect general data
+        const quizData = {
+            name: document.getElementById('quiz-name').value,
+            time_limit_minutes: document.getElementById('quiz-time').value,
+            max_attempts: document.getElementById('quiz-attempts').value,
+            questions: []
+        };
+
+        // Collect questions and choices
+        const questionCards = document.querySelectorAll('.question-card');
+        for (let card of questionCards) {
+            let qText = card.querySelector('.q-text').value;
+            let qDifficulty = card.querySelector('.q-difficulty').value;
+            
+            if (!qText.trim()) continue; // skip empty questions
+
+            let questionObj = {
+                text: qText,
+                difficulty: qDifficulty,
+                choices: []
+            };
+
+            const choiceRows = card.querySelectorAll('.choices-container .choice-row');
+            choiceRows.forEach(row => {
+                let choiceText = row.querySelector('.q-choice').value;
+                let isCorrect = row.querySelector('.q-correct').checked;
+                
+                if (choiceText.trim()) {
+                    questionObj.choices.push({
+                        text: choiceText,
+                        is_correct: isCorrect
+                    });
+                }
+            });
+
+            if (questionObj.choices.length > 0) {
+                quizData.questions.push(questionObj);
+            }
+        }
+
+        if (quizData.questions.length === 0) {
+            alert("Veuillez ajouter au moins une question valide.");
+            btn.innerHTML = "<i class='bx bx-save me-1'></i> Enregistrer les modifications";
+            btn.disabled = false;
+            return;
+        }
+
+        // Send POST request
+        try {
+            const response = await fetch("{% url 'edit_quiz' course.name %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(quizData)
+            });
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                window.location.href = "{% url 'manage_course' course.name %}";
+            } else {
+                alert("Erreur: " + data.message);
+                btn.innerHTML = "<i class='bx bx-save me-1'></i> Enregistrer les modifications";
+                btn.disabled = false;
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Erreur lors de la communication avec le serveur.");
+            btn.innerHTML = "<i class='bx bx-save me-1'></i> Enregistrer les modifications";
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}
