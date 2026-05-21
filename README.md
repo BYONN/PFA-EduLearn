@@ -39,8 +39,8 @@
 
 ## Auteurs
 Crée par:
-- Kharibach Ilyass,
-- Boulaiz Ilias,
+- Kharibach Ilyass
+- Boulaiz Ilias
 - Azoui Mouad
 
 ## License
