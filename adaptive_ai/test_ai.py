@@ -7,7 +7,6 @@ def test_cat_model():
     print("   ADAPTIVE AI (CAT) - TEST LAB   ")
     print("==================================================\n")
 
-    # 1. Load the trained "Brain"
     current_dir = os.path.dirname(__file__)
     model_path = os.path.join(current_dir, 'cat_model.joblib')
     
@@ -17,7 +16,6 @@ def test_cat_model():
         print("ERROR: Could not find cat_model.joblib. Did you run train_model.py?")
         return
 
-    # 2. Define some test scenarios
     print("Loading test scenarios...\n")
     
     scenarios = [
@@ -50,12 +48,10 @@ def test_cat_model():
         }
     ]
 
-    # 3. Test the ML model
     for s in scenarios:
         print(f"\n--- {s['name']} ---")
         print(f"Context: {s['desc']}")
         
-        # Format the data exactly how the ML model expects it
         input_data = pd.DataFrame([{
             'student_base_elo': s['student_base_elo'],
             'last_question_difficulty': s['last_question_difficulty'],
@@ -64,13 +60,11 @@ def test_cat_model():
             'avg_time_taken': s['avg_time_taken']
         }])
         
-        # Predict the target difficulty for the next question
         predicted_difficulty = cat_model.predict(input_data)[0]
         
         print(f"-> Current Question Elo: {s['last_question_difficulty']}")
         print(f"** AI RECOMMENDED NEXT QUESTION ELO: {round(predicted_difficulty)}")
         
-        # Show the jump
         jump = round(predicted_difficulty) - s['last_question_difficulty']
         if jump > 0:
             print(f"++ Difficulty Jump: +{jump} points (Getting harder!)")

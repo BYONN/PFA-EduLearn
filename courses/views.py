@@ -52,7 +52,6 @@ def quizintro(request, course_name):
     quiz = course.quiz_set.first()
     
     if not quiz:
-        # Create a default generic quiz for this course on the fly
         quiz, created = Quiz.objects.get_or_create(
             course=course,
             defaults={
@@ -81,7 +80,6 @@ def take_quiz(request, course_name):
     quiz = course.quiz_set.first()
     
     if not quiz:
-        # Create a default generic quiz for this course on the fly
         quiz, created = Quiz.objects.get_or_create(
             course=course,
             defaults={
@@ -95,7 +93,6 @@ def take_quiz(request, course_name):
     if quiz.max_attempts > 0 and attempts_count >= quiz.max_attempts:
         return redirect('quizintro', course_name=course_name)
         
-    # Create the attempt when they land on the page
     attempt = Tentative.objects.create(user=request.user, quiz=quiz, score=0, cheat_alert=False)
         
     from users.models import PlatformSetting
@@ -118,11 +115,10 @@ def api_quiz_action(request, attempt_id):
         data = json.loads(request.body)
         action = data.get('action')
         
-        # Determine total questions to ask
         total_questions_in_quiz = quiz.question_set.count()
         if total_questions_in_quiz == 0:
             total_questions_in_quiz = Question.objects.filter(category=quiz.course.categorie).count()
-        limit = min(10, total_questions_in_quiz) # Ask max 10 questions per attempt
+        limit = min(10, total_questions_in_quiz)
         
         if action == 'report_cheat':
             attempt.cheat_alert = True
@@ -137,7 +133,6 @@ def api_quiz_action(request, attempt_id):
             question = get_object_or_404(Question, id=question_id)
             choice = get_object_or_404(Choice, id=choice_id)
             
-            # Avoid duplicate answers for the same question in the same attempt
             if not ReponseUtilisateur.objects.filter(attempt=attempt, question=question).exists():
                 ReponseUtilisateur.objects.create(
                     attempt=attempt,
@@ -146,7 +141,6 @@ def api_quiz_action(request, attempt_id):
                     time_taken=time_taken
                 )
                 
-                # Dynamic Elo Update based on performance
                 from adaptive_ai.models import NiveauCompetence
                 from adaptive_ai.elo_engine import update_user_elo
                 
@@ -165,11 +159,9 @@ def api_quiz_action(request, attempt_id):
                 skill_level.estimated_level = new_elo
                 skill_level.save()
             
-            # Check progress
             total_answered = ReponseUtilisateur.objects.filter(attempt=attempt).count()
             
             if total_answered >= limit:
-                # Finish the quiz
                 correct_count = ReponseUtilisateur.objects.filter(attempt=attempt, choice__is_correct=True).count()
                 final_score = int((correct_count / limit) * 100) if limit > 0 else 0
                 attempt.score = final_score
@@ -186,9 +178,6 @@ def api_quiz_action(request, attempt_id):
                     'redirect': f"/courses/quiz_result/{quiz.course.name}/{attempt.id}",
                 })
                 
-            # If not finished, just fall through to the logic below to fetch the next question
-            
-        # Logic to fetch next question (runs for 'get_first_question' and after 'submit_answer')
         answered_q_ids = ReponseUtilisateur.objects.filter(attempt=attempt).values_list('question_id', flat=True)
         total_answered = answered_q_ids.count()
         
@@ -209,7 +198,6 @@ def api_quiz_action(request, attempt_id):
                 'redirect': f"/courses/quiz_result/{quiz.course.name}/{attempt.id}",
             })
             
-        # Select the next question using Adaptive ELO Recommendation Engine
         from adaptive_ai.models import NiveauCompetence
         skill_level, created = NiveauCompetence.objects.get_or_create(
             user=request.user,
@@ -225,19 +213,16 @@ def api_quiz_action(request, attempt_id):
             available_questions = Question.objects.filter(category=quiz.course.categorie).exclude(id__in=answered_q_ids)
         
         if total_answered == 0:
-            # Cold-start strategy: pick question closest to user's current Elo
             if available_questions.exists():
                 next_q = min(available_questions, key=lambda q: abs(q.difficulty_level - user_elo))
             else:
                 next_q = None
         else:
-            # ML-driven CAT (Computerized Adaptive Testing) prediction
             import os
             import joblib
             import pandas as pd
             from django.conf import settings
             
-            # Retrieve session stats for features
             last_response = ReponseUtilisateur.objects.filter(attempt=attempt).order_by('-id').first()
             last_question_difficulty = last_response.question.difficulty_level if last_response else 1200
             
@@ -271,21 +256,17 @@ def api_quiz_action(request, attempt_id):
                 else:
                     raise Exception("Model not loaded")
             except Exception as e:
-                # Safe Fallback to baseline Elo increment/decrement
                 if last_response and last_response.choice.is_correct:
                     target_difficulty = user_elo + 50
                 else:
                     target_difficulty = user_elo - 50
             
-            # --- Safety Guardrails on ML/Adaptive Recommendations ---
             if last_response:
                 if not last_response.choice.is_correct:
-                    # Incorrect answer: target difficulty must be strictly less than or equal to current user ELO
                     max_allowed = min(user_elo, last_question_difficulty)
                     if target_difficulty > max_allowed:
                         target_difficulty = max_allowed - 50
                 else:
-                    # Correct answer: target difficulty can increase, but clamp wild positive jumps
                     if target_difficulty > user_elo + 150:
                         target_difficulty = user_elo + 50
 
@@ -333,7 +314,6 @@ def quiz_result(request, course_name, attempt_id):
     attempt = Tentative.objects.get(id=attempt_id, user=request.user)
     course = Course.objects.get(name=course_name)
     
-    # Get newly unlocked badges for this attempt
     new_badges = request.session.pop('new_badges', [])
     
     context = {
@@ -355,7 +335,6 @@ def create_course(request):
             course = form.save(commit=False)
             course.teacher = request.user
             course.save()
-            # redirect to the dashboard which is in EduLearn
             return redirect('teacher_dashboard')
     else:
         form = CourseForm()
@@ -381,7 +360,6 @@ def create_quiz(request, course_name):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            # Create the Quiz
             quiz = Quiz.objects.create(
                 name=data.get('name', f"Quiz - {course.name}"),
                 time_limit_minutes=int(data.get('time_limit_minutes', 15)),
@@ -389,7 +367,6 @@ def create_quiz(request, course_name):
                 course=course
             )
             
-            # Create Questions and Choices
             for q_data in data.get('questions', []):
                 question = Question.objects.create(
                     text=q_data.get('text', ''),
@@ -419,13 +396,11 @@ def edit_quiz(request, course_name):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            # Update quiz configuration
             quiz.name = data.get('name', quiz.name)
             quiz.time_limit_minutes = int(data.get('time_limit_minutes', quiz.time_limit_minutes))
             quiz.max_attempts = int(data.get('max_attempts', quiz.max_attempts))
             quiz.save()
             
-            # Recreate questions & choices
             quiz.question_set.all().delete()
             
             for q_data in data.get('questions', []):
@@ -445,7 +420,6 @@ def edit_quiz(request, course_name):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
             
-    # Prepare initial data for frontend
     questions_data = []
     for question in quiz.question_set.all():
         choices_data = []

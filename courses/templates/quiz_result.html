@@ -97,7 +97,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body px-5 pb-5 text-center">
-                <div class="mb-4 display-1">🎉</div>
+                <div class="mb-4 display-1"><i class="bx bx-party"></i></div>
                 <h3 class="fw-bold text-dark mb-2">Badge Débloqué !</h3>
                 <p class="text-secondary mb-4">Félicitations, vous avez accompli un exploit !</p>
                 
@@ -105,9 +105,9 @@
                     {% for badge_name in new_badges %}
                     <div class="p-3 bg-light border rounded-3 d-flex align-items-center gap-3 text-start">
                         <div class="fs-1">
-                            {% if badge_name == "Première Victoire" %}🥇
-                            {% elif badge_name == "Parfait" %}✨
-                            {% else %}🎖️{% endif %}
+                            {% if badge_name == "Première Victoire" %} <i class="bx bx-trophy"></i>
+                            {% elif badge_name == "Parfait" %} <i class="bx bx-star"></i>
+                            {% else %} <i class="bx bx-medal"></i>{% endif %}
                         </div>
                         <div>
                             <h6 class="fw-bold text-dark mb-1">{{ badge_name }}</h6>
